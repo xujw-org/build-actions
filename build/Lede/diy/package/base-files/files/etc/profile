@@ -7,7 +7,12 @@ if grep -Eq "x86" "/etc/openwrt_release" ; then
 else
 	DISTRIB_ARCH=${DISTRIB_ARCH}	
 fi
-local IP_Address=`ip -4 a | egrep "br-lan" | grep "inet" | awk '{print $2}'`
+local IP_Address=""
+if ip -4 a | grep -q "br-lan"; then
+    IP_Address=$(ip -4 a show br-lan | grep "inet" | awk '{print $2}')
+elif ip -4 a | grep -q "eth0"; then
+    IP_Address=$(ip -4 a show eth0 | grep "inet" | awk '{print $2}')
+fi
 local CPU_Model=$(awk -F ':[ ]' '/model name/{printf ($2);exit}' /proc/cpuinfo)
 local Mem_sum=$(free | grep Mem | awk '{a=$2/1024} {printf("%dMB\n",a)}')
 local Overlay_Available="$(df -h | grep ":/overlay" | awk '{print $4}' | awk 'NR==1')"
